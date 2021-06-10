@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -34,6 +36,16 @@ class User implements UserInterface
      * @ORM\Column(type="string")
      */
     private $password;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Sessions::class, mappedBy="client")
+     */
+    private $Sessions;
+
+    public function __construct()
+    {
+        $this->Sessions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -114,5 +126,35 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection|Sessions[]
+     */
+    public function getSessions(): Collection
+    {
+        return $this->Sessions;
+    }
+
+    public function addSession(Sessions $session): self
+    {
+        if (!$this->Sessions->contains($session)) {
+            $this->Sessions[] = $session;
+            $session->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSession(Sessions $session): self
+    {
+        if ($this->Sessions->removeElement($session)) {
+            // set the owning side to null (unless already changed)
+            if ($session->getClient() === $this) {
+                $session->setClient(null);
+            }
+        }
+
+        return $this;
     }
 }

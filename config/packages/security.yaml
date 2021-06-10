@@ -1,4 +1,5 @@
 security:
+    enable_authenticator_manager: true
     encoders:
         App\Entity\User:
             algorithm: auto
@@ -15,9 +16,9 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            anonymous: true
             lazy: true
-            provider: app_user_provider
+            json_login:
+                check_path: login
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
