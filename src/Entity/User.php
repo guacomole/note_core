@@ -38,14 +38,15 @@ class User implements UserInterface
     private $password;
 
     /**
-     * @ORM\OneToMany(targetEntity=Sessions::class, mappedBy="client")
+     * @ORM\ManyToMany(targetEntity=Session::class, inversedBy="users")
      */
-    private $Sessions;
+    private $session;
 
     public function __construct()
     {
-        $this->Sessions = new ArrayCollection();
+        $this->session = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -129,31 +130,25 @@ class User implements UserInterface
     }
 
     /**
-     * @return Collection|Sessions[]
+     * @return Collection|Session[]
      */
-    public function getSessions(): Collection
+    public function getSession(): Collection
     {
-        return $this->Sessions;
+        return $this->session;
     }
 
-    public function addSession(Sessions $session): self
+    public function addSession(Session $session): self
     {
-        if (!$this->Sessions->contains($session)) {
-            $this->Sessions[] = $session;
-            $session->setClient($this);
+        if (!$this->session->contains($session)) {
+            $this->session[] = $session;
         }
 
         return $this;
     }
 
-    public function removeSession(Sessions $session): self
+    public function removeSession(Session $session): self
     {
-        if ($this->Sessions->removeElement($session)) {
-            // set the owning side to null (unless already changed)
-            if ($session->getClient() === $this) {
-                $session->setClient(null);
-            }
-        }
+        $this->session->removeElement($session);
 
         return $this;
     }

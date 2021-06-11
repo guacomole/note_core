@@ -24,7 +24,7 @@ class UserFixtures extends Fixture
 		$user = new User();
 
 		$user->setEmail('mail@mail.ru');
-		$user->setPassword($this->passwordHasher->encodePassword($user, 'the_new_password'));
+		$user->setPassword($this->passwordHasher->encodePassword($user, 'Wwwqqq111'));
 
 		$manager->persist($user);
 

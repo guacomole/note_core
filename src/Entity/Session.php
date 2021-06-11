@@ -2,19 +2,21 @@
 
 namespace App\Entity;
 
-use App\Repository\SessionsRepository;
+use App\Repository\SessionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=SessionsRepository::class)
+ * @ORM\Entity(repositoryClass=SessionRepository::class)
  */
-class Sessions
+class Session
 {
-    /**
-     * @ORM\Id
-     * @ORM\Column(type="string", length=255)
-     */
-    private $sess_id;
+	/**
+	 * @ORM\Id()
+	 * @ORM\Column(type="string", length=128)
+	 */
+	private $id;
 
     /**
      * @ORM\Column(type="binary")
@@ -32,25 +34,18 @@ class Sessions
     private $sess_time;
 
     /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="Sessions")
+     * @ORM\ManyToMany(targetEntity=User::class, mappedBy="session")
      */
-    private $client;
+    private $users;
 
-    public function getId(): ?int
+    public function __construct()
     {
-        return $this->id;
+        $this->users = new ArrayCollection();
     }
 
-    public function getSessId(): ?string
+    public function getId()
     {
-        return $this->sess_id;
-    }
-
-    public function setSessId(string $sess_id): self
-    {
-        $this->sess_id = $sess_id;
-
-        return $this;
+    	return $this->id;
     }
 
     public function getSessData()
@@ -89,14 +84,29 @@ class Sessions
         return $this;
     }
 
-    public function getClient(): ?User
+    /**
+     * @return Collection|User[]
+     */
+    public function getUsers(): Collection
     {
-        return $this->client;
+        return $this->users;
     }
 
-    public function setClient(?User $client): self
+    public function addUser(User $user): self
     {
-        $this->client = $client;
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->addSession($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeSession($this);
+        }
 
         return $this;
     }
