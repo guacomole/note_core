@@ -1,11 +1,8 @@
 <?php
 
-namespace App\API\v1\Security;
+namespace App\Security;
 
-use App\API\v1\Service\CoreService;
 use App\Entity\User;
-use App\Enum\RoleEnum;
-use App\Enum\UserEnum;
 use App\Enum\RouteEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,20 +23,17 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 {
 	use TargetPathTrait;
 
-	private const LOGIN_ROUTE = RouteEnum::LOGIN_API_V1;
+	private const LOGIN_ROUTE = RouteEnum::LOGIN;
 
 	private $entityManager;
-
-	private $coreService;
 
 	private $urlGenerator;
 
 	private $passwordEncoder;
 
-	public function __construct(EntityManagerInterface $entityManager, CoreService $coreService, UrlGeneratorInterface $urlGenerator, UserPasswordEncoderInterface $passwordEncoder)
+	public function __construct(EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, UserPasswordEncoderInterface $passwordEncoder)
 	{
 		$this->entityManager = $entityManager;
-		$this->coreService = $coreService;
 		$this->urlGenerator = $urlGenerator;
 		$this->passwordEncoder = $passwordEncoder;
 	}
@@ -76,19 +70,15 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 			throw new UnprocessableEntityHttpException('Неправильный логин и/или пароль.');
 		}
 
-		if ($user->getStatus() == UserEnum::BANNED) {
+		/*if ($user->getStatus() == UserEnum::BANNED) {
 			throw new UnprocessableEntityHttpException('Пользователь был заблокирован. Обратитесь к администратору');
-		}
+		}*/
 
 		return $user;
 	}
 
 	public function checkCredentials($credentials, UserInterface $user)
 	{
-		if (in_array(RoleEnum::PREMERCH, $user->getRoles())) {
-			return $this->coreService->authPremerch($credentials['username'], $credentials['password']);
-		}
-
 		return $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
 	}
 

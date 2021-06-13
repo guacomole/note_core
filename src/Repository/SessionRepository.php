@@ -38,7 +38,7 @@ class SessionRepository extends ServiceEntityRepository
 	{
 		$query = $this->createQueryBuilder('s')
 			->from(Session::class, 'session')
-			->innerJoin('session.user', 'user')
+			->innerJoin('session.users', 'user')
 			->where('user = ?1')
 			->andWhere('session != ?2')
 			->setParameter(1, $user->getId())

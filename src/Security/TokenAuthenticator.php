@@ -27,21 +27,17 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
 	private $em;
 	private ?UserService $userService;
 	private ?SessionService $sessionService;
-	private ?CoreService $coreApiService;
-	private ?DocumentService $documentService;
 	private ?Request $request;
 
-	private const LOGIN_ROUTE = RouteEnum::LOGIN_API_V1;
+	private const LOGIN_ROUTE = RouteEnum::LOGIN;
 
 	private const TOKEN_HEADER = 'token';
 
-	public function __construct(EntityManagerInterface $em, UserService $userService, SessionService $sessionService, CoreService $coreApiService, DocumentService $documentService, RequestStack $requestStack)
+	public function __construct(EntityManagerInterface $em, UserService $userService, SessionService $sessionService, RequestStack $requestStack)
 	{
 		$this->em = $em;
 		$this->userService = $userService;
 		$this->sessionService = $sessionService;
-		$this->coreApiService = $coreApiService;
-		$this->documentService = $documentService;
 		$this->request = $requestStack->getCurrentRequest();
 	}
 
@@ -68,19 +64,11 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
 	{
 		$session = $this->sessionService->oneByIdAndNotExpired($credentials);
 
-		if (!$session || !$session->getUser()->first()) {
-			try {
-				return $this->coreApiService->getUserByToken($credentials);
-			} catch (UnauthorizedHttpException $e) {
-				if ($this->request->query->get('token') && $this->documentService->oneByTokenAndId($this->request->query->get('token'), $this->request->attributes->get('id'))) {
-					return $this->userService->oneByLogin(UserNameEnum::PARTNER);
-				}
-
-				return null;
-			}
+		if (!$session || !$session->getUsers()->first()) {
+			return null;
 		}
 
-		return $session->getUser()->first();
+		return $session->getUsers()->first();
 	}
 
 	public function checkCredentials($credentials, UserInterface $user)
