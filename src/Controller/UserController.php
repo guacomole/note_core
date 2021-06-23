@@ -22,9 +22,8 @@ class UserController extends AbstractFOSRestController
     public function index(UserRepository $userRepository): Response
     {
     	$data = $userRepository->findAll();
-	    $view = $this->view($data, 200);
 
-	    return $this->handleView($view);
+	    return $this->json(['jopa' => true]);
     }
 
     /**
