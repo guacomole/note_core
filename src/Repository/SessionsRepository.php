@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Sessions;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -19,32 +20,35 @@ class SessionsRepository extends ServiceEntityRepository
         parent::__construct($registry, Sessions::class);
     }
 
-    // /**
-    //  * @return Sessions[] Returns an array of Sessions objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('s.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+	public function oneByIdAndNotExpired(string $id) : ?Sessions
+	{
+		$query = $this->createQueryBuilder('s')
+			->where('s.id = :id')
+			->andWhere('s.sess_lifetime > :sessionLifetime')
+			->setParameter('id', $id)
+			->setParameter('sessionLifetime', (new \DateTime())->getTimestamp());
 
-    /*
-    public function findOneBySomeField($value): ?Sessions
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
+		return $query->getQuery()->getOneOrNullResult();
+	}
+
+	public function removeUnnecessarySessionByUser(User $user, Sessions $session)
+	{
+		$query = $this->createQueryBuilder('s')
+			->from(Sessions::class, 'session')
+			->innerJoin('session.user', 'user')
+			->where('user = ?1')
+			->andWhere('session != ?2')
+			->setParameter(1, $user->getId())
+			->setParameter(2, $session->getId())
+			->select('session.id')
+			->distinct();
+
+		$qb = $this->createQueryBuilder('s1')
+			->delete(Sessions::class, 's1')
+			->where('s1.id IN ( ?3 )')
+			->setParameter('3', $query->getQuery()->execute());
+
+		return $qb->getQuery()->execute();
+	}
+
 }

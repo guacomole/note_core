@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\SessionsRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -32,9 +34,14 @@ class Sessions
     private $sess_time;
 
     /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="Sessions")
+     * @ORM\ManyToMany(targetEntity=User::class, mappedBy="sessions")
      */
-    private $client;
+    private $users;
+
+    public function __construct()
+    {
+        $this->users = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -89,14 +96,29 @@ class Sessions
         return $this;
     }
 
-    public function getClient(): ?User
+    /**
+     * @return Collection|User[]
+     */
+    public function getUsers(): Collection
     {
-        return $this->client;
+        return $this->users;
     }
 
-    public function setClient(?User $client): self
+    public function addUser(User $user): self
     {
-        $this->client = $client;
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->addSession($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeSession($this);
+        }
 
         return $this;
     }

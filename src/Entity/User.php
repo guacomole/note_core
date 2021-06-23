@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\ORM\Mapping\JoinColumn;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -38,14 +39,18 @@ class User implements UserInterface
     private $password;
 
     /**
-     * @ORM\OneToMany(targetEntity=Sessions::class, mappedBy="client")
+     * @ORM\ManyToMany(targetEntity=Sessions::class, inversedBy="users")
+     * @ORM\JoinTable(name="user_sessions", joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
+     *                  inverseJoinColumns={@ORM\JoinColumn( name="session_id" , referencedColumnName="sess_id" , onDelete="cascade")}
+     *     )
      */
-    private $Sessions;
+    private $sessions;
 
     public function __construct()
     {
-        $this->Sessions = new ArrayCollection();
+        $this->sessions = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -133,14 +138,13 @@ class User implements UserInterface
      */
     public function getSessions(): Collection
     {
-        return $this->Sessions;
+        return $this->sessions;
     }
 
     public function addSession(Sessions $session): self
     {
-        if (!$this->Sessions->contains($session)) {
-            $this->Sessions[] = $session;
-            $session->setClient($this);
+        if (!$this->sessions->contains($session)) {
+            $this->sessions[] = $session;
         }
 
         return $this;
@@ -148,12 +152,7 @@ class User implements UserInterface
 
     public function removeSession(Sessions $session): self
     {
-        if ($this->Sessions->removeElement($session)) {
-            // set the owning side to null (unless already changed)
-            if ($session->getClient() === $this) {
-                $session->setClient(null);
-            }
-        }
+        $this->sessions->removeElement($session);
 
         return $this;
     }
