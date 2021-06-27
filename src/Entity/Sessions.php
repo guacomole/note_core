@@ -43,9 +43,9 @@ class Sessions
         $this->users = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
-        return $this->id;
+        return $this->sess_id;
     }
 
     public function getSessId(): ?string

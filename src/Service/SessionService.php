@@ -18,7 +18,7 @@ class SessionService
 
 	public function oneById(string $id)
 	{
-		return $this->entityManager->getRepository(Sessions::class)->findOneBy(['id' => $id]);
+		return $this->entityManager->getRepository(Sessions::class)->findOneBy(['sess_id' => $id]);
 	}
 
 	public function oneByIdAndNotExpired(string $id) : ?Sessions
@@ -42,7 +42,7 @@ class SessionService
 
 	public function removeUnnecessarySessionByUser(User $user, Sessions $session)
 	{
-		return $this->entityManager->getRepository(Session::class)->removeUnnecessarySessionByUser($user, $session);
+		return $this->entityManager->getRepository(Sessions::class)->removeUnnecessarySessionByUser($user, $session);
 	}
 
 }

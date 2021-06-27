@@ -23,7 +23,7 @@ class SessionsRepository extends ServiceEntityRepository
 	public function oneByIdAndNotExpired(string $id) : ?Sessions
 	{
 		$query = $this->createQueryBuilder('s')
-			->where('s.id = :id')
+			->where('s.sess_id = :id')
 			->andWhere('s.sess_lifetime > :sessionLifetime')
 			->setParameter('id', $id)
 			->setParameter('sessionLifetime', (new \DateTime())->getTimestamp());
@@ -35,17 +35,17 @@ class SessionsRepository extends ServiceEntityRepository
 	{
 		$query = $this->createQueryBuilder('s')
 			->from(Sessions::class, 'session')
-			->innerJoin('session.user', 'user')
+			->innerJoin('session.users', 'user')
 			->where('user = ?1')
 			->andWhere('session != ?2')
 			->setParameter(1, $user->getId())
 			->setParameter(2, $session->getId())
-			->select('session.id')
+			->select('session.sess_id')
 			->distinct();
 
 		$qb = $this->createQueryBuilder('s1')
 			->delete(Sessions::class, 's1')
-			->where('s1.id IN ( ?3 )')
+			->where('s1.sess_id IN ( ?3 )')
 			->setParameter('3', $query->getQuery()->execute());
 
 		return $qb->getQuery()->execute();

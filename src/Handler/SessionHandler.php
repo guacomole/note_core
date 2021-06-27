@@ -52,8 +52,8 @@ class SessionHandler extends PdoSessionHandler
 
 			if ($session && $user) {
 				$user->addSession($session);
-				$this->userService->createOrUpdate($user);
-				$this->sessionService->removeUnnecessarySessionByUser($user, $session);
+				$this->userService->persist($user);
+				//$this->sessionService->removeUnnecessarySessionByUser($user, $session);
 			}
 			return $session;
 		}

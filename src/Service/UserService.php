@@ -24,7 +24,13 @@ class UserService
 	{
 		return $this->entityManager
 			->getRepository(User::class)
-			->findOneBy(['username' => $login]);
+			->findOneBy(['email' => $login]);
+	}
+
+	public function persist(User $user) : void
+	{
+		$this->entityManager->persist($user);
+		$this->entityManager->flush();
 	}
 
 }

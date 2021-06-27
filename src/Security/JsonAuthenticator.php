@@ -46,17 +46,19 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 
 	public function getCredentials(Request $request)
 	{
-		if (!$request->request->get('username')) {
+		$parameters = json_decode($request->getContent(), true);
+
+		if (!isset($parameters['username'])) {
 			throw new UnprocessableEntityHttpException('Поле "username" не должно быть пустым');
 		}
 
-		if (!$request->request->get('password')) {
+		if (!isset($parameters['password'])) {
 			throw new UnprocessableEntityHttpException('Поле "password" не должно быть пустым');
 		}
 
 		$credentials = [
-			'username' => $request->request->get('username'),
-			'password' => $request->request->get('password'),
+			'username' => $parameters['username'],
+			'password' => $parameters['password'],
 		];
 
 		return $credentials;
@@ -64,7 +66,7 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 
 	public function getUser($credentials, UserProviderInterface $userProvider)
 	{
-		$user = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $credentials['username']]);
+		$user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['username']]);
 
 		if (!$user) {
 			throw new UnprocessableEntityHttpException('Неправильный логин и/или пароль.');
