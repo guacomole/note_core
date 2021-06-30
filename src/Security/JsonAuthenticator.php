@@ -66,7 +66,7 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 
 	public function getUser($credentials, UserProviderInterface $userProvider)
 	{
-		$user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['username']]);
+		$user = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $credentials['username']]);
 
 		if (!$user) {
 			throw new UnprocessableEntityHttpException('Неправильный логин и/или пароль.');

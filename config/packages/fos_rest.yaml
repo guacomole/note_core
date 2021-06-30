@@ -1,6 +1,6 @@
 # Read the documentation: https://symfony.com/doc/master/bundles/FOSRestBundle/index.html
 fos_rest:
-  param_fetcher_listener: true
+  param_fetcher_listener: force
   body_listener: true
   view:
     view_response_listener: true
@@ -12,11 +12,12 @@ fos_rest:
       Symfony\Component\Routing\Exception\ResourceNotFoundException: 404
       Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException: 429
       Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException: 422
+      FOS\RestBundle\Exception\InvalidParameterException: 422
     messages:
       Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException: true
+      FOS\RestBundle\Exception\InvalidParameterException: true
+    map_exception_codes: true
 
-
-#    param_fetcher_listener:  true
 #    allowed_methods_listener:  true
 #    routing_loader: true
 #    view:
