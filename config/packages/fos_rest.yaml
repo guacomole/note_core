@@ -15,7 +15,7 @@ fos_rest:
       FOS\RestBundle\Exception\InvalidParameterException: 422
     messages:
       Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException: true
-      FOS\RestBundle\Exception\InvalidParameterException: true
+      Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException: true
     map_exception_codes: true
 
 #    allowed_methods_listener:  true
