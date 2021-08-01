@@ -23,10 +23,7 @@ class ComplexPasswordValidator extends ConstraintValidator
 			throw new UnexpectedValueException($value, 'string');
 		}
 
-		if (strlen($value) < 8
-			|| strlen($value) > 20
-			|| !preg_match('/^.*([a-zA-Z0-9])$/', $value)
-		) {
+		if (!preg_match('/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]){8,32}/', $value)) {
 			$this->context->buildViolation($constraint->message)
 				->setParameter('{{ string }}', $value)
 				->addViolation();

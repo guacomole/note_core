@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraint;
  */
 class ComplexPassword extends Constraint
 {
-	public $message = 'Пароль должен содержать: не менее 8 символов и не более 20 символов, только цифры, заглавные и строчные буквы латиницей';
+	public $message = 'Пароль должен содержать: не менее 8 символов и не более 32 символов, только цифры, заглавные и строчные буквы латиницей';
 
 	public function validatedBy()
 	{

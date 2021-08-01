@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Enum\RoleEnum;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
@@ -23,8 +24,25 @@ class UserFixtures extends Fixture
 	{
 		$user = new User();
 
-		$user->setUsername('mail@mail.ru');
+		$user->setUsername('user');
 		$user->setPassword($this->passwordHasher->encodePassword($user, 'Wwwqqq111'));
+		$user->setRoles([RoleEnum::ROLE_USER]);
+
+		$manager->persist($user);
+
+		$user = new User();
+
+		$user->setUsername('master');
+		$user->setPassword($this->passwordHasher->encodePassword($user, 'Wwwqqq111'));
+		$user->setRoles([RoleEnum::ROLE_MASTER]);
+
+		$manager->persist($user);
+
+		$user = new User();
+
+		$user->setUsername('admin');
+		$user->setPassword($this->passwordHasher->encodePassword($user, 'Wwwqqq111'));
+		$user->setRoles([RoleEnum::ROLE_ADMIN]);
 
 		$manager->persist($user);
 

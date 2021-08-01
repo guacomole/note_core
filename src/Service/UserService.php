@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\User;
+use App\Enum\RoleEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -28,7 +29,7 @@ class UserService
 			->findOneBy(['username' => $login]);
 	}
 
-	public function create(string $username, string $name, string $password, array $roles) : User
+	public function create(string $username, string $name, string $password, string $role) : User
 	{
 		$user = new User();
 
@@ -37,7 +38,7 @@ class UserService
 		$user->setUsername($username);
 		$user->setName($name);
 		$user->setPassword($encodedPassword);
-		$user->setRoles($roles);
+		$user->setRoles([$role]);
 
 		$this->entityManager->persist($user);
 		$this->entityManager->flush();
@@ -49,6 +50,24 @@ class UserService
 	{
 		$this->entityManager->persist($user);
 		$this->entityManager->flush();
+	}
+
+	public function getAvailableRoles(User $user)
+	{
+
+		if ($user->hasRole(RoleEnum::ROLE_ADMIN)) {
+			return [
+				['name' => 'Пользователь', 'role' => RoleEnum::ROLE_USER],
+				['name' => 'Врач', 'role' => RoleEnum::ROLE_MASTER],
+				['name' => 'Администратор', 'role' => RoleEnum::ROLE_ADMIN]];
+		}
+
+		return [['name' => 'Пользователь', 'role' => RoleEnum::ROLE_USER]];
+	}
+
+	public function getAvailableRolesRaw(User $user) : array
+	{
+		return array_column($this->getAvailableRoles($user), 'role');
 	}
 
 }

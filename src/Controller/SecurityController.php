@@ -2,16 +2,18 @@
 
 namespace App\Controller;
 
+use App\Enum\RoleEnum;
 use App\Handler\SessionHandler;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\User;
+use FOS\RestBundle\Controller\Annotations as Rest;
 
-class SecurityController extends AbstractController
+class SecurityController extends AbstractFOSRestController
 {
 	/**
 	 * @Route("/login", name="login", methods={"POST"})
@@ -38,4 +40,14 @@ class SecurityController extends AbstractController
 		]);
 
 	}
+
+	/**
+	 * @Rest\Post("/random-password")
+	 *
+	 */
+	public function generatePassword()
+	{
+		return null;
+	}
+
 }

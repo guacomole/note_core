@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Enum\RoleEnum;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use App\Service\NormalizerService;
@@ -19,6 +20,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Request\ParamFetcher;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
 use Symfony\Component\Validator\Constraints;
+use App\Validator\Constraints\ComplexPassword;
 
 
 /**
@@ -43,27 +45,25 @@ class UserController extends AbstractFOSRestController
 	/**
 	 * @Rest\Post("")
 	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
-	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым")}, description="Password")
+	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
 	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
-	 * @RequestParam(name="roles", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
+	 * @RequestParam(name="role", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
 	 */
     public function create(ParamFetcher $paramFetcher, NormalizerService $normalizerService, UserService $userService): Response
     {
-    	$user = $this->getUser();
-
     	if (!$this->isGranted('ROLE_MASTER') && !$this->isGranted('ROLE_ADMIN')) {
 			throw $this->createAccessDeniedException();
 	    }
 
     	if ($userService->oneByLogin($paramFetcher->get('username'))){
-    		throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует");
+    		throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует.");
 	    }
 
-        $user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), $paramFetcher->get('roles'));
+	    if(!in_array($paramFetcher->get('role'), $userService->getAvailableRolesRaw($this->getUser()))) {
+		    throw new UnprocessableEntityHttpException("Некорректная роль.");
+	    };
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($user);
-        $entityManager->flush();
+        $user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), $paramFetcher->get('role'));
 
 	    $data = $normalizerService->serializeCollection(
 		    [$user],
@@ -72,5 +72,14 @@ class UserController extends AbstractFOSRestController
 
         return $this->json($data);
     }
+
+	/**
+	 * @Rest\Get("/roles")
+	 *
+	 */
+	public function getRoles(UserService $userService)
+	{
+		return $this->json($userService->getAvailableRoles($this->getUser()));
+	}
 
 }
