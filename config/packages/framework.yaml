@@ -10,6 +10,7 @@ framework:
         handler_id: App\Handler\SessionHandler
         cookie_secure: auto
         cookie_samesite: lax
+        gc_maxlifetime: null
 
     #esi: true
     #fragments: true

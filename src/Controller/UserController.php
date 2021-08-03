@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Enum\RoleEnum;
 use App\Form\UserType;
+use App\Handler\SessionHandler;
 use App\Repository\UserRepository;
 use App\Service\NormalizerService;
 use App\Service\UserService;
@@ -12,6 +13,8 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Serializer;
@@ -72,6 +75,53 @@ class UserController extends AbstractFOSRestController
 
         return $this->json($data);
     }
+
+	/**
+	 * @Rest\Post("/registration")
+	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
+	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
+	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
+	 * @RequestParam(name="role", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
+	 */
+	public function registration(Request $request, SessionHandler $sessionHandler, ParamFetcher $paramFetcher, NormalizerService $normalizerService, UserService $userService): Response
+	{
+		/**
+		 * @var \Symfony\Component\Security\Core\User\User $user
+		 */
+		$user = $this->getUser();
+
+		if ($user) {
+			throw $this->createAccessDeniedException('Нельзя зарегистрироваться под авторизованным пользователем');
+		}
+
+		if ($userService->oneByLogin($paramFetcher->get('username'))){
+			throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует.");
+		}
+
+		if(!in_array($paramFetcher->get('role'), $userService->getAvailableRolesRaw($this->getUser()))) {
+			throw new UnprocessableEntityHttpException("Некорректная роль.");
+		};
+
+		$user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), $paramFetcher->get('role'));
+
+		$sessionStorage = new NativeSessionStorage(['use_cookies' => false], $sessionHandler);
+		$session = new Session($sessionStorage);
+
+		$session->set('username', $user->getUsername());
+		$session->save();
+
+		$request->setSession($session);
+
+		$data = $normalizerService->serializeCollection(
+			[$user],
+			['id', 'username', 'name', 'roles']
+		);
+
+		$data['token'] = $session->getId();
+
+		return $this->json($data);
+
+	}
 
 	/**
 	 * @Rest\Get("/roles")

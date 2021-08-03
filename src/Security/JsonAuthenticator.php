@@ -40,7 +40,7 @@ class JsonAuthenticator extends AbstractFormLoginAuthenticator implements Passwo
 
 	public function supports(Request $request)
 	{
-		return self::LOGIN_ROUTE === $request->attributes->get('_route')
+		return self::LOGIN_ROUTE === $request->getPathInfo()
 			&& $request->isMethod('POST');
 	}
 

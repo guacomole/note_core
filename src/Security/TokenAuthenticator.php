@@ -29,7 +29,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
 	private ?SessionService $sessionService;
 	private ?Request $request;
 
-	private const LOGIN_ROUTE = RouteEnum::LOGIN;
+	private const FREE_ROUTES = [RouteEnum::LOGIN, RouteEnum::USER_REGISTRATION];
 
 	private const TOKEN_HEADER = 'token';
 
@@ -48,7 +48,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
 	 */
 	public function supports(Request $request)
 	{
-		return $request->get('_route') !== self::LOGIN_ROUTE;
+		return !in_array($request->getPathInfo(), self::FREE_ROUTES);
 	}
 
 	/**
