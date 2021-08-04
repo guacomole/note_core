@@ -9,6 +9,7 @@ use App\Handler\SessionHandler;
 use App\Repository\UserRepository;
 use App\Service\NormalizerService;
 use App\Service\UserService;
+use Doctrine\Tests\ORM\Functional\Ticket\Role;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -81,7 +82,6 @@ class UserController extends AbstractFOSRestController
 	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
 	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
 	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
-	 * @RequestParam(name="role", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
 	 */
 	public function registration(Request $request, SessionHandler $sessionHandler, ParamFetcher $paramFetcher, NormalizerService $normalizerService, UserService $userService): Response
 	{
@@ -94,15 +94,11 @@ class UserController extends AbstractFOSRestController
 			throw $this->createAccessDeniedException('Нельзя зарегистрироваться под авторизованным пользователем');
 		}
 
-		if ($userService->oneByLogin($paramFetcher->get('username'))){
+		if ($userService->oneByLogin($paramFetcher->get('username'))) {
 			throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует.");
 		}
 
-		if(!in_array($paramFetcher->get('role'), $userService->getAvailableRolesRaw($this->getUser()))) {
-			throw new UnprocessableEntityHttpException("Некорректная роль.");
-		};
-
-		$user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), $paramFetcher->get('role'));
+		$user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), RoleEnum::ROLE_USER);
 
 		$sessionStorage = new NativeSessionStorage(['use_cookies' => false], $sessionHandler);
 		$session = new Session($sessionStorage);
