@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\User\User;
+use App\Entity\User;
 use FOS\RestBundle\Controller\Annotations as Rest;
 
 class SecurityController extends AbstractFOSRestController
@@ -35,8 +35,11 @@ class SecurityController extends AbstractFOSRestController
 		return $this->json([
 			'id' => $user->getId(),
 			'username' => $user->getUsername(),
+			'email' => $user->getEmail(),
+			'phone' => $user->getPhone(),
+			'name' => $user->getName(),
 			'roles' => $user->getRoles(),
-			'token' => $session->getId()
+			'token' => $session->getId(),
 		]);
 
 	}

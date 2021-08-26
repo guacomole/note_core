@@ -70,4 +70,17 @@ class UserService
 		return array_column($this->getAvailableRoles($user), 'role');
 	}
 
+	public function isAvailableRolesByUser(array $roles, User $user) : bool
+	{
+		$availableRoles = $this->getAvailableRolesRaw($user);
+
+		foreach ($roles as $role) {
+			if (!in_array($role, $availableRoles)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 }
