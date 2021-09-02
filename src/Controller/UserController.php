@@ -51,7 +51,7 @@ class UserController extends AbstractFOSRestController
 	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
 	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
 	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
-	 * @RequestParam(name="roles", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль"), @Constraints\A}, description="Roles")
+	 * @RequestParam(name="roles", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
 	 */
     public function create(ParamFetcher $paramFetcher, NormalizerService $normalizerService, UserService $userService): Response
     {
