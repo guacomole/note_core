@@ -29,7 +29,7 @@ class UserService
 			->findOneBy(['username' => $login]);
 	}
 
-	public function create(string $username, string $name, string $password, string $role) : User
+	public function create(string $username, string $name, string $password, string $email, string $phone, string $role) : User
 	{
 		$user = new User();
 
@@ -38,7 +38,28 @@ class UserService
 		$user->setUsername($username);
 		$user->setName($name);
 		$user->setPassword($encodedPassword);
+		$user->setEmail($email);
+		$user->setPhone($phone);
+
 		$user->setRoles([$role]);
+
+		$this->entityManager->persist($user);
+		$this->entityManager->flush();
+
+		return $user;
+	}
+
+	public function update(string $username, string $name = null, string $email = null, string $phone = null, array $roles = null) : User
+	{
+		$user = $this->oneByLogin($username);
+
+		$name ? $user->setName($name) : null;
+		$phone ? $user->setPhone($phone) : null;
+		$roles ? $user->setRoles($roles) : null;
+
+		$user->setEmail($email);
+		$user->setPhone($phone);
+		$user->setRoles($roles);
 
 		$this->entityManager->persist($user);
 		$this->entityManager->flush();

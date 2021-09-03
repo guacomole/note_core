@@ -39,7 +39,7 @@ class UserController extends AbstractFOSRestController
     {
 	    $data = $normalizerService->serializeCollection(
 		    $userRepository->findAll(),
-		    ['id', 'username', 'roles']
+		    ['id', 'username', 'email', 'phone', 'name', 'roles']
 	    );
 
 
@@ -50,6 +50,8 @@ class UserController extends AbstractFOSRestController
 	 * @Rest\Post("")
 	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
 	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
+	 * @RequestParam(name="email", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле email не может быть пустым"), @Constraints\Email()}, description="Email")
+	 * @RequestParam(name="phone", requirements={@Constraints\Length(max=11), @Constraints\Type(type="int")}, description="Phone")
 	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
 	 * @RequestParam(name="roles", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
 	 */
@@ -67,11 +69,18 @@ class UserController extends AbstractFOSRestController
 		    throw new UnprocessableEntityHttpException("Некорректная роль.");
 	    };
 
-        $user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), $paramFetcher->get('role'));
+        $user = $userService->create(
+			$paramFetcher->get('username'),
+	        $paramFetcher->get('name'),
+	        $paramFetcher->get('password'),
+	        $paramFetcher->get('email'),
+	        $paramFetcher->get('phone'),
+	        $paramFetcher->get('roles')
+        );
 
 	    $data = $normalizerService->serializeCollection(
 		    [$user],
-		    ['id', 'username', 'name', 'roles']
+		    ['id', 'username', 'email', 'phone', 'name', 'roles']
 	    );
 
         return $this->json($data);
@@ -80,6 +89,8 @@ class UserController extends AbstractFOSRestController
 	/**
 	 * @Rest\Post("/registration")
 	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
+	 * @RequestParam(name="email", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле email не может быть пустым"), @Constraints\Email()}, description="Email")
+	 * @RequestParam(name="phone", requirements={@Constraints\Length(max=11), @Constraints\Type(type="int")}, description="Phone")
 	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
 	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
 	 */
@@ -98,7 +109,14 @@ class UserController extends AbstractFOSRestController
 			throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует.");
 		}
 
-		$user = $userService->create($paramFetcher->get('username'), $paramFetcher->get('name'), $paramFetcher->get('password'), RoleEnum::ROLE_USER);
+		$user = $userService->create(
+			$paramFetcher->get('username'),
+			$paramFetcher->get('name'),
+			$paramFetcher->get('password'),
+			$paramFetcher->get('email'),
+			$paramFetcher->get('phone'),
+			RoleEnum::ROLE_USER
+		);
 
 		$sessionStorage = new NativeSessionStorage(['use_cookies' => false], $sessionHandler);
 		$session = new Session($sessionStorage);
@@ -117,6 +135,46 @@ class UserController extends AbstractFOSRestController
 
 		return $this->json($data);
 
+	}
+
+	/**
+	 * @Rest\Put("")
+	 * @RequestParam(name="username", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле username не может быть пустым")}, description="Username")
+	 * @RequestParam(name="password", requirements={@Constraints\NotBlank(message="Поле пароль не может быть пустым"), @ComplexPassword()}, description="Password")
+	 * @RequestParam(name="email", requirements={@Constraints\Length(max=20), @Constraints\NotBlank(message="Поле email не может быть пустым"), @Constraints\Email()}, description="Email")
+	 * @RequestParam(name="phone", requirements={@Constraints\Length(max=11), @Constraints\Type(type="int")}, description="Phone")
+	 * @RequestParam(name="name", requirements={@Constraints\Length(max=96)}, description="Name")
+	 * @RequestParam(name="roles", requirements={@Constraints\NotBlank(message="Регистрация без указания роли не является возможной. Пожалуйста, укажите роль")}, description="Roles")
+	 */
+	public function update(ParamFetcher $paramFetcher, NormalizerService $normalizerService, UserService $userService): Response
+	{
+		if (!$this->isGranted('ROLE_MASTER') && !$this->isGranted('ROLE_ADMIN')) {
+			throw $this->createAccessDeniedException();
+		}
+
+		if ($userService->oneByLogin($paramFetcher->get('username'))){
+			throw new UnprocessableEntityHttpException("Пользователь с таким логином уже существует.");
+		}
+
+		if($userService->isAvailableRolesByUser($paramFetcher->get('roles'), $this->getUser())) {
+			throw new UnprocessableEntityHttpException("Некорректная роль.");
+		};
+
+		$user = $userService->update(
+			$paramFetcher->get('username'),
+			$paramFetcher->get('name'),
+			$paramFetcher->get('password'),
+			$paramFetcher->get('email'),
+			$paramFetcher->get('phone'),
+			$paramFetcher->get('roles')
+		);
+
+		$data = $normalizerService->serializeCollection(
+			[$user],
+			['id', 'username', 'email', 'phone', 'name', 'roles']
+		);
+
+		return $this->json($data);
 	}
 
 	/**
